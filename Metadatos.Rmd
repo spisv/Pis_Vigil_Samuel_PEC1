@@ -1,0 +1,57 @@
+---
+title: "Metadatos_PEC1"
+author: "Samuel Pis Vigil"
+date: "2025-03-28"
+output: pdf_document
+---
+
+
+
+
+Obtención de los metadatos del set de análisis usado para esta PEC1 reutilizando parte del código del informe principal
+
+```{r}
+# Descargamos los datos desde usando el link al repositorio de GitHub
+Cachexia <- read.csv("https://raw.githubusercontent.com/nutrimetabolomics/metaboData/main/Datasets/2024-Cachexia/human_cachexia.csv", header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+
+library(SummarizedExperiment)
+
+# Extraemos los datos como una matriz, descartando las dos primeras columnas
+# (que se corresponden a los metadatos)
+matriz <- as.matrix(Cachexia[, -c(1,2)])
+
+# Asignamos el ID del paciente o control como nombre de fila
+rownames(matriz) <- Cachexia[,1]  
+
+# Extraemos los metadatos y les asignamos el nombre de lo que son
+# (IDs de pacientes y grupo [paciente o control])
+columnas <- data.frame(
+  PatientID = Cachexia[,1],
+  Group = Cachexia[,2],
+  row.names = Cachexia[,1]
+)
+filas <- data.frame(
+  Metabolite = colnames(matriz),
+  row.names = colnames(matriz)
+)
+
+# Creamos el objeto SummarizedExperiment, con una trasposición de la matriz
+# para que las filas sean las variables y las columnas los pacientes o controles
+sumario <- SummarizedExperiment(
+  assays = list(counts = t(matriz)),
+  colData = columnas,
+  rowData = filas
+)
+
+sumario
+
+
+# Extraer metadatos de las muestras (columnas)
+as.data.frame(colData(sumario))
+
+# Extraer metadatos de los metabolitos (filas)
+as.data.frame(rowData(sumario))
+```
+
+Existen en este set de datos 77 muestras pertenecientes a personas de dos grupos: controles y pacientes con caquexia. En dichas muestras se han analizado los niveles de 63 metabolitos como variables.
+
